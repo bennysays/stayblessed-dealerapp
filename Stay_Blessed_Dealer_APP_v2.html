@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Stay Blessed Insurance — Dealer Portal v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { height:100%; overflow-x:hidden; background:#050b16; font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color:white; overscroll-behavior:none; }
+
+/* ═══════════════════════════════════════════
+   APP FRAME
+═══════════════════════════════════════════ */
+.app-frame {
+  max-width:28rem; margin:0 auto;
+  min-height:100vh;
+  background:linear-gradient(180deg,#0A1628 0%,#0E1B2E 100%);
+  position:relative; overflow:hidden;
+}
+
+/* ═══════════════════════════════════════════
+   AMBIENT ORBS
+═══════════════════════════════════════════ */
+.ambient { position:absolute; top:0; left:0; right:0; height:24rem; pointer-events:none; overflow:hidden; z-index:1; }
+.orb1 { position:absolute; top:-8rem; right:-5rem; width:18rem; height:18rem; border-radius:50%; background:radial-gradient(circle,#C9A961 0%,transparent 70%); opacity:0.18; filter:blur(40px); }
+.orb2 { position:absolute; top:-5rem; left:-5rem; width:16rem; height:16rem; border-radius:50%; background:radial-gradient(circle,#C9A961 0%,transparent 70%); opacity:0.09; filter:blur(40px); }
+
+/* ═══════════════════════════════════════════
+   SCREEN SYSTEM
+═══════════════════════════════════════════ */
+.screen {
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  overflow-y:auto; overflow-x:hidden;
+  opacity:0; pointer-events:none;
+  transform:translateX(100%);
+  transition:transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s;
+  z-index:10;
+}
+.screen::-webkit-scrollbar { display:none; }
+.screen.active { opacity:1; pointer-events:all; transform:translateX(0); }
+.screen.slide-left { transform:translateX(-30%); opacity:0; pointer-events:none; }
+
+/* ═══════════════════════════════════════════
+   TYPOGRAPHY UTILITIES
+═══════════════════════════════════════════ */
+.font-display { font-family:'Fraunces',Georgia,serif; font-feature-settings:'ss01' on; letter-spacing:-0.02em; }
+.gold-text { background:linear-gradient(135deg,#F4D78A 0%,#C9A961 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.shimmer-gold { background:linear-gradient(90deg,#C9A961 0%,#F4D78A 50%,#C9A961 100%); background-size:200% 100%; animation:shimmer 3s linear infinite; -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes pulse-ring { 0%{transform:scale(0.95);opacity:1} 100%{transform:scale(1.4);opacity:0} }
+@keyframes slide-up { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes fade-in { from{opacity:0} to{opacity:1} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes scan-line { 0%{top:0} 100%{top:100%} }
+@keyframes bounce-dot { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+@keyframes pdot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+@keyframes pop-in { 0%{transform:scale(0.9);opacity:0} 100%{transform:scale(1);opacity:1} }
+
+.pulse-dot::after { content:''; position:absolute; inset:0; border-radius:50%; background:inherit; animation:pulse-ring 1.6s ease-out infinite; }
+.slide-up { animation:slide-up 0.4s ease-out backwards; }
+.fade-in { animation:fade-in 0.3s ease-out backwards; }
+
+/* ═══════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════ */
+.glass { background:rgba(255,255,255,0.04); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.08); }
+.icon-btn { width:2.75rem; height:2.75rem; border-radius:50%; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); cursor:pointer; color:rgba(255,255,255,0.7); flex-shrink:0; position:relative; }
+.icon-btn .badge { position:absolute; top:0.5rem; right:0.5rem; width:0.5rem; height:0.5rem; border-radius:50%; background:#C9A961; }
+.online-pill { display:inline-flex; align-items:center; gap:5px; }
+.online-dot { width:0.5rem; height:0.5rem; border-radius:50%; background:#34d399; position:relative; }
+.online-dot::after { content:''; position:absolute; inset:0; border-radius:50%; background:#34d399; animation:pulse-ring 1.6s ease-out infinite; }
+.online-text { font-size:0.625rem; color:#6ee7b7; text-transform:uppercase; letter-spacing:0.15em; font-weight:500; }
+
+/* ═══════════════════════════════════════════
+   WORDMARK SVG
+═══════════════════════════════════════════ */
+.wordmark-svg { height:20px; width:auto; max-width:220px; }
+
+/* ═══════════════════════════════════════════
+   ── SCREEN 1: HOME ──
+═══════════════════════════════════════════ */
+#screen-home { padding:0 1.25rem 8rem; padding-top:0; }
+.home-content { position:relative; z-index:10; }
+
+.home-header { display:flex; justify-content:space-between; align-items:flex-start; padding:1.25rem 0 1rem; }
+
+.greeting-sm { font-size:0.875rem; color:rgba(255,255,255,0.5); }
+.rep-name-lg { font-size:1.5rem; font-weight:600; line-height:1.1; }
+.dealership-sm { font-size:0.75rem; color:rgba(255,255,255,0.4); margin-top:0.125rem; }
+
+.brand-line { height:1px; margin-bottom:1.5rem; background:linear-gradient(90deg,transparent,rgba(201,169,97,0.4),transparent); }
+
+/* Primary CTA */
+.primary-action { width:100%; margin-bottom:1.5rem; border:none; cursor:pointer; position:relative; background:transparent; }
+.primary-action-glow { position:absolute; inset:0; border-radius:1rem; background:linear-gradient(135deg,#C9A961 0%,#B8943F 100%); opacity:0.55; filter:blur(20px); transition:opacity 0.2s; }
+.primary-action:active .primary-action-glow { opacity:0.9; }
+.primary-action-inner { position:relative; border-radius:1rem; padding:1.5rem; display:flex; align-items:center; gap:1rem; background:linear-gradient(135deg,#C9A961 0%,#B8943F 100%); }
+.action-icon-wrap { width:3.5rem; height:3.5rem; border-radius:0.75rem; background:rgba(255,255,255,0.15); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; color:white; }
+.action-text { flex:1; text-align:left; }
+.action-title { color:white; font-size:1.25rem; font-weight:600; }
+.action-sub { color:rgba(255,255,255,0.8); font-size:0.75rem; margin-top:0.125rem; }
+
+/* Stats */
+.stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1.75rem; }
+.stat-card { border-radius:0.75rem; padding:0.875rem; position:relative; overflow:hidden; }
+.stat-glow { position:absolute; top:0; right:0; width:4rem; height:4rem; border-radius:50%; background:radial-gradient(circle,#C9A961 0%,transparent 70%); opacity:0.3; filter:blur(15px); }
+.stat-label { color:rgba(255,255,255,0.4); font-size:0.625rem; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.25rem; }
+.stat-value { font-size:1.5rem; font-weight:600; }
+.stat-sub { color:rgba(255,255,255,0.3); font-size:0.625rem; margin-top:0.125rem; }
+.stat-trend { display:flex; align-items:center; gap:0.25rem; margin-top:0.125rem; }
+.stat-trend-text { color:#34d399; font-size:0.625rem; font-weight:500; }
+
+/* Section */
+.section-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; }
+.section-title { font-size:1.125rem; font-weight:500; color:rgba(255,255,255,0.9); }
+.section-link { background:none; border:none; color:rgba(255,255,255,0.4); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; cursor:pointer; }
+
+/* Submission cards */
+.sub-list { display:flex; flex-direction:column; gap:0.625rem; }
+.sub-card { width:100%; border-radius:0.75rem; padding:1rem; text-align:left; cursor:pointer; transition:transform 0.1s; border:none; background:rgba(255,255,255,0.04); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,0.08); }
+.sub-card:active { transform:scale(0.98); }
+.sub-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem; }
+.sub-customer { color:white; font-size:1rem; font-weight:600; }
+.sub-meta { color:rgba(255,255,255,0.4); font-size:0.75rem; margin-top:0.125rem; }
+.live-pill { display:flex; align-items:center; gap:0.375rem; }
+.live-dot { width:0.375rem; height:0.375rem; border-radius:50%; background:#C9A961; position:relative; }
+.live-dot::after { content:''; position:absolute; inset:0; border-radius:50%; background:#C9A961; animation:pulse-ring 1.6s ease-out infinite; }
+.live-text { color:#C9A961; font-size:0.625rem; text-transform:uppercase; letter-spacing:0.15em; }
+.stage-bar { display:flex; gap:0.25rem; margin-bottom:0.625rem; }
+.stage-segment { flex:1; height:0.25rem; border-radius:9999px; }
+.stage-active { background:linear-gradient(90deg,#C9A961,#F4D78A); }
+.stage-inactive { background:rgba(255,255,255,0.08); }
+.sub-foot { display:flex; justify-content:space-between; align-items:center; }
+.sub-status-active { font-size:0.75rem; color:rgba(255,255,255,0.8); }
+.sub-status-rep { font-size:0.75rem; color:rgba(255,255,255,0.3); }
+.sub-eta { color:#C9A961; font-size:0.75rem; }
+
+/* Recent wins */
+.recent-section { margin-top:1.5rem; }
+.recent-label { color:rgba(255,255,255,0.6); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.15em; margin-bottom:0.75rem; }
+.recent-card { border-radius:0.75rem; padding:0.875rem; display:flex; align-items:center; gap:0.75rem; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); }
+.recent-icon-wrap { width:2.5rem; height:2.5rem; border-radius:50%; background:rgba(52,211,153,0.15); display:flex; align-items:center; justify-content:center; color:#34d399; }
+
+/* ═══════════════════════════════════════════
+   ── SCREEN 2: CAPTURE ──
+═══════════════════════════════════════════ */
+#screen-capture { background:#0A1628; }
+
+.cap-header { display:flex; align-items:center; justify-content:space-between; padding:1.25rem 1.25rem 0.5rem; flex-shrink:0; }
+.cap-title { font-size:0.6875rem; text-transform:uppercase; letter-spacing:0.15em; color:rgba(255,255,255,0.5); }
+
+.greeting-strip { padding:0.5rem 1.25rem 0.875rem; flex-shrink:0; }
+.greeting-text { font-family:'Fraunces',Georgia,serif; font-size:1rem; font-weight:500; line-height:1.3; }
+.greeting-name { background:linear-gradient(135deg,#F4D78A 0%,#C9A961 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.car-flip { display:inline-block; transform:scaleX(-1); }
+
+.viewfinder { margin:0 1.125rem; border-radius:1.25rem; overflow:hidden; position:relative; aspect-ratio:3/4; background:#0f1d33; flex-shrink:0; border:1px solid rgba(255,255,255,0.06); }
+
+.doc-mock { position:absolute; inset:1.75rem; background:#f0ebe0; border-radius:6px; padding:0.75rem 0.625rem; transition:transform 0.5s cubic-bezier(0.34,1.56,0.64,1); transform:rotate(-4deg) scale(0.88); overflow:hidden; }
+.doc-mock.aligned { transform:rotate(0deg) scale(1); }
+.doc-title { font-size:5px; font-weight:700; color:#334155; margin-bottom:2px; font-family:'Inter',sans-serif; }
+.doc-sub { font-size:4px; color:#64748b; margin-bottom:6px; font-family:'Inter',sans-serif; }
+.doc-line { border-radius:99px; margin-bottom:3px; background:#cbd5e1; }
+.doc-line.lg { height:3px; }
+.doc-line.sm { height:2px; background:#e2e8f0; }
+
+.frame-corners { position:absolute; inset:0.875rem; pointer-events:none; }
+.corner { position:absolute; width:1.5rem; height:1.5rem; border-color:#C9A961; transition:all 0.4s; }
+.corner.tl { top:0; left:0; border-top:2.5px solid; border-left:2.5px solid; border-radius:4px 0 0 0; opacity:0.5; }
+.corner.tr { top:0; right:0; border-top:2.5px solid; border-right:2.5px solid; border-radius:0 4px 0 0; opacity:0.5; }
+.corner.bl { bottom:0; left:0; border-bottom:2.5px solid; border-left:2.5px solid; border-radius:0 0 0 4px; opacity:0.5; }
+.corner.br { bottom:0; right:0; border-bottom:2.5px solid; border-right:2.5px solid; border-radius:0 0 4px 0; opacity:0.5; }
+.frame-corners.snapped .corner { opacity:1; border-color:#4ade80; }
+
+.scanner-line { position:absolute; left:0; right:0; height:3rem; background:linear-gradient(180deg,transparent,rgba(201,169,97,0.4),transparent); pointer-events:none; display:none; animation:scan-line 1.2s linear infinite; }
+.doc-mock.processing .scanner-line { display:block; }
+
+.flash-overlay { position:absolute; inset:0; background:white; opacity:0; pointer-events:none; transition:opacity 0.05s; }
+.flash-overlay.go { opacity:0.7; }
+
+/* OCR overlay */
+.processing-overlay { position:absolute; left:0; right:0; bottom:0; padding:1.25rem; background:linear-gradient(180deg,transparent,rgba(10,22,40,0.95)); display:none; }
+.processing-overlay.active { display:block; }
+.processing-row { display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; }
+.processing-text { color:white; font-size:0.875rem; font-weight:500; }
+.processing-sub { color:rgba(255,255,255,0.6); font-size:0.75rem; }
+.spinner { animation:spin 1s linear infinite; }
+
+.ocr-steps { display:flex; flex-direction:column; gap:4px; padding-top:4px; }
+.ocr-step { display:flex; align-items:center; gap:6px; font-size:10px; color:rgba(255,255,255,0.4); transition:color 0.3s; }
+.ocr-step.done { color:#4ade80; }
+.ocr-step.active { color:rgba(255,255,255,0.9); }
+.step-dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.15); flex-shrink:0; }
+.ocr-step.done .step-dot { background:#4ade80; }
+.ocr-step.active .step-dot { background:#C9A961; animation:pdot 1s ease-in-out infinite; }
+
+/* Captured overlay */
+.captured-overlay { position:absolute; inset:0; background:rgba(10,22,40,0.85); display:none; align-items:center; justify-content:center; text-align:center; flex-direction:column; gap:0.75rem; }
+.captured-overlay.active { display:flex; animation:fade-in 0.3s ease-out; }
+.check-circle { width:4rem; height:4rem; border-radius:50%; background:linear-gradient(135deg,#C9A961,#F4D78A); display:flex; align-items:center; justify-content:center; }
+.captured-text { color:white; font-size:1.125rem; }
+
+/* Capture controls */
+.cap-controls { padding:0.875rem 1.25rem 1.5rem; display:flex; flex-direction:column; align-items:center; gap:0.75rem; flex-shrink:0; }
+.cap-hint { font-size:0.6875rem; color:rgba(255,255,255,0.45); text-align:center; line-height:1.5; }
+.cap-hint.green { color:#4ade80; }
+.cap-hint.warn { color:#fbbf24; }
+
+.shutter-wrap { display:flex; align-items:center; gap:1.5rem; }
+.shutter-btn { width:4rem; height:4rem; border-radius:50%; background:linear-gradient(135deg,#F4D78A,#C9A961); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; position:relative; transition:transform 0.1s; flex-shrink:0; box-shadow:0 8px 32px rgba(201,169,97,0.4); }
+.shutter-btn:active { transform:scale(0.93); }
+.shutter-ring { position:absolute; inset:-5px; border-radius:50%; border:2px solid rgba(201,169,97,0.35); }
+.side-btn { width:2.5rem; height:2.5rem; border-radius:50%; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+/* ═══════════════════════════════════════════
+   ── SCREEN 3: VERIFY ──
+═══════════════════════════════════════════ */
+#screen-verify { padding:0 0 6rem; background:#0A1628; }
+
+.verify-header { display:flex; align-items:center; gap:0.75rem; padding:1.25rem 1.25rem 1rem; position:sticky; top:0; background:#0A1628; z-index:20; }
+.verify-title { font-size:1.25rem; font-weight:600; }
+.verify-sub { font-size:0.75rem; color:rgba(255,255,255,0.5); }
+
+.sources-bar { margin:0 1.25rem 0.875rem; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:0.625rem 0.75rem; display:flex; align-items:center; gap:0.625rem; }
+.source-pill { display:flex; align-items:center; gap:4px; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:500; }
+.source-pill.bos { background:rgba(201,169,97,0.15); border:1px solid rgba(201,169,97,0.3); color:#C9A961; }
+.source-pill.dl { background:rgba(99,179,237,0.12); border:1px solid rgba(99,179,237,0.25); color:#63b3ed; }
+.source-dot { width:5px; height:5px; border-radius:50%; }
+.source-dot.bos { background:#C9A961; }
+.source-dot.dl { background:#63b3ed; }
+.sources-rule { font-size:9px; color:rgba(255,255,255,0.35); flex:1; line-height:1.4; }
+
+/* Field groups */
+.field-group { margin:0 1.25rem 0.875rem; }
+.field-group-label { font-size:0.625rem; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.35); margin-bottom:0.5rem; padding-left:2px; }
+.field-list { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:14px; overflow:hidden; }
+.field-row { display:flex; align-items:flex-start; justify-content:space-between; padding:0.6875rem 0.875rem; border-bottom:1px solid rgba(255,255,255,0.05); gap:0.5rem; }
+.field-row:last-child { border-bottom:none; }
+.field-content { flex:1; min-width:0; }
+.field-label { font-size:0.625rem; color:rgba(255,255,255,0.4); margin-bottom:3px; }
+.field-value { font-size:0.8125rem; color:white; font-weight:500; }
+.field-source { display:flex; align-items:center; gap:3px; font-size:9px; font-weight:600; letter-spacing:0.04em; padding:2px 6px; border-radius:20px; flex-shrink:0; margin-top:2px; }
+.field-source.bos { background:rgba(201,169,97,0.12); color:#C9A961; }
+.field-source.dl { background:rgba(99,179,237,0.1); color:#63b3ed; }
+.field-source.nhtsa { background:rgba(74,222,128,0.1); color:#4ade80; }
+.field-badge { display:flex; align-items:center; gap:3px; font-size:9px; padding:2px 6px; border-radius:20px; flex-shrink:0; margin-top:2px; }
+.field-badge.verified { background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.2); color:#4ade80; }
+.field-badge.warn { background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.25); color:#fbbf24; }
+
+/* Conflict row */
+.conflict-row { padding:0.6875rem 0.875rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+.conflict-row:last-child { border-bottom:none; }
+.conflict-label { font-size:0.625rem; color:rgba(255,255,255,0.4); margin-bottom:6px; }
+.conflict-options { display:flex; flex-direction:column; gap:4px; }
+.conflict-option { display:flex; align-items:center; justify-content:space-between; padding:6px 10px; border-radius:8px; gap:8px; }
+.conflict-option.winner { background:rgba(201,169,97,0.1); border:1px solid rgba(201,169,97,0.25); }
+.conflict-option.loser { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); opacity:0.6; }
+.conflict-value { font-size:11px; font-weight:500; }
+.conflict-option.winner .conflict-value { color:white; }
+.conflict-option.loser .conflict-value { color:rgba(255,255,255,0.5); text-decoration:line-through; }
+.conflict-badge { font-size:9px; font-weight:600; padding:2px 6px; border-radius:20px; flex-shrink:0; }
+.conflict-badge.bos { background:rgba(201,169,97,0.15); color:#C9A961; }
+.conflict-badge.dl { background:rgba(99,179,237,0.1); color:#63b3ed; }
+.winner-tag { font-size:9px; color:#4ade80; font-weight:600; }
+
+/* Input rows */
+.input-row { padding:0.625rem 0.875rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+.input-row:last-child { border-bottom:none; }
+.input-label-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.input-field-label { font-size:0.625rem; color:rgba(255,255,255,0.4); }
+.required-tag { font-size:9px; color:#f87171; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.2); padding:1px 6px; border-radius:20px; }
+.optional-tag { font-size:9px; color:rgba(255,255,255,0.3); background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:1px 6px; border-radius:20px; }
+.text-input { width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:8px 12px; color:white; font-size:0.8125rem; font-family:'Inter',sans-serif; outline:none; box-sizing:border-box; transition:border-color 0.2s; }
+.text-input::placeholder { color:rgba(255,255,255,0.25); }
+.text-input:focus { border-color:rgba(201,169,97,0.5); }
+.text-input.prefilled { border-color:rgba(201,169,97,0.3); }
+.prefilled-note { font-size:9px; color:#C9A961; margin-top:4px; display:flex; align-items:center; gap:4px; }
+.field-hint { font-size:9px; color:rgba(255,255,255,0.28); margin-top:4px; font-style:italic; }
+
+/* Submit */
+.submit-wrap { padding:0.25rem 1.25rem 1.75rem; }
+.submit-btn { width:100%; padding:1rem; border-radius:1rem; background:linear-gradient(135deg,#C9A961,#B8943F); border:none; cursor:pointer; box-shadow:0 10px 40px rgba(201,169,97,0.3); display:flex; align-items:center; justify-content:center; gap:0.75rem; color:white; font-family:'Fraunces',serif; font-size:1.0625rem; font-weight:600; letter-spacing:-0.02em; transition:transform 0.1s; }
+.submit-btn:active { transform:scale(0.98); }
+.submit-btn.blocked { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.25); cursor:not-allowed; box-shadow:none; }
+.submit-note { color:rgba(255,255,255,0.3); font-size:0.625rem; text-align:center; margin-top:0.5rem; text-transform:uppercase; letter-spacing:0.15em; }
+
+/* ═══════════════════════════════════════════
+   ── SCREEN 4: TRACKER ──
+═══════════════════════════════════════════ */
+#screen-tracker { background:#0A1628; }
+
+.tracker-header { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.25rem 0.75rem; flex-shrink:0; position:sticky; top:0; background:#0A1628; z-index:20; }
+.show-customer-btn { padding:6px 14px; border-radius:20px; background:rgba(201,169,97,0.12); border:1px solid rgba(201,169,97,0.3); color:#C9A961; font-size:11px; font-family:'Inter',sans-serif; cursor:pointer; font-weight:500; transition:all 0.2s; }
+.show-customer-btn.active { background:rgba(201,169,97,0.25); border-color:#C9A961; }
+
+.tracker-info { padding:0 1.25rem 0.875rem; flex-shrink:0; }
+.tracker-id { font-size:0.625rem; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.35); margin-bottom:3px; }
+.tracker-name { font-family:'Fraunces',Georgia,serif; font-size:1.5rem; font-weight:700; color:white; line-height:1.1; }
+.tracker-vehicle { font-size:0.75rem; color:rgba(255,255,255,0.4); margin-top:3px; }
+
+/* Rep card */
+.rep-card { margin:0 1.25rem 1rem; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:0.75rem 0.875rem; display:flex; align-items:center; gap:0.75rem; }
+.rep-avatar { width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#0A1628; flex-shrink:0; font-family:'Fraunces',serif; }
+.rep-name-text { font-size:0.8125rem; font-weight:600; color:white; }
+.rep-role-text { font-size:0.625rem; color:rgba(255,255,255,0.4); margin-top:1px; }
+.rep-action-text { font-size:0.6875rem; margin-top:2px; }
+.active-pill { display:flex; align-items:center; gap:4px; background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.2); border-radius:20px; padding:3px 8px; margin-left:auto; flex-shrink:0; }
+.active-dot { width:5px; height:5px; border-radius:50%; background:#4ade80; animation:pdot 1.5s ease-in-out infinite; }
+.active-text { font-size:9px; color:#4ade80; }
+
+/* Stages */
+.stages-list { padding:0 1.25rem; flex:1; }
+.stage-row { display:flex; align-items:flex-start; gap:0.875rem; position:relative; padding-bottom:4px; }
+.stage-left { display:flex; flex-direction:column; align-items:center; width:36px; flex-shrink:0; }
+.stage-icon-wrap { position:relative; }
+.stage-icon { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all 0.4s; }
+.stage-icon.complete { background:rgba(201,169,97,0.15); border:1px solid rgba(201,169,97,0.3); }
+.stage-icon.active { background:linear-gradient(135deg,rgba(201,169,97,0.25),rgba(201,169,97,0.1)); border:1.5px solid #C9A961; box-shadow:0 0 20px rgba(201,169,97,0.25); }
+.stage-icon.future { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); }
+.stage-pulse { position:absolute; inset:-4px; border-radius:50%; border:1.5px solid rgba(201,169,97,0.4); animation:pulse-ring 2s ease-out infinite; }
+.stage-connector { width:2px; flex:1; min-height:28px; margin:4px 0; border-radius:99px; transition:background 0.5s; }
+.stage-connector.done { background:linear-gradient(180deg,#C9A961,rgba(201,169,97,0.2)); }
+.stage-connector.pending { background:rgba(255,255,255,0.08); }
+.stage-content { flex:1; padding-bottom:1.25rem; }
+.stage-title-row { display:flex; align-items:center; gap:8px; margin-bottom:3px; }
+.stage-title { font-size:0.875rem; font-weight:600; transition:color 0.3s; }
+.now-pill { display:flex; align-items:center; gap:3px; background:rgba(201,169,97,0.15); border:1px solid rgba(201,169,97,0.3); border-radius:20px; padding:1px 7px; }
+.now-dot { width:4px; height:4px; border-radius:50%; background:#C9A961; animation:pdot 1s ease-in-out infinite; }
+.now-text { font-size:9px; color:#C9A961; font-weight:600; }
+.stage-msg { font-size:0.75rem; line-height:1.5; transition:color 0.3s; }
+.stage-time-text { font-size:0.625rem; color:rgba(255,255,255,0.25); margin-top:3px; }
+.stage-eta { font-size:0.625rem; color:rgba(201,169,97,0.6); margin-top:3px; }
+.rep-inline { display:inline-flex; align-items:center; gap:4px; background:rgba(255,255,255,0.06); border-radius:20px; padding:2px 8px 2px 3px; margin-top:5px; }
+.rep-inline-dot { width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:7px; font-weight:700; flex-shrink:0; }
+.rep-inline-name { font-size:10px; color:rgba(255,255,255,0.6); }
+
+/* Bound card */
+.bound-card { margin:0 1.25rem 1.25rem; background:linear-gradient(135deg,rgba(74,222,128,0.1),rgba(74,222,128,0.05)); border:1px solid rgba(74,222,128,0.2); border-radius:20px; padding:1.125rem; display:none; }
+.bound-card.visible { display:block; animation:pop-in 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+.bound-title { font-family:'Fraunces',Georgia,serif; font-size:1.0625rem; font-weight:700; color:#4ade80; margin-bottom:4px; }
+.bound-sub { font-size:0.75rem; color:rgba(255,255,255,0.6); line-height:1.5; }
+
+/* ── Customer overlay ── */
+.customer-overlay { position:absolute; inset:0; background:#0A1628; z-index:30; display:flex; flex-direction:column; padding:1.5rem 1.5rem 2.5rem; transition:opacity 0.3s; overflow-y:auto; }
+.customer-overlay::-webkit-scrollbar { display:none; }
+.customer-overlay.hidden { opacity:0; pointer-events:none; }
+.customer-back-btn { padding:6px 14px; border-radius:20px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.6); font-size:11px; font-family:'Inter',sans-serif; cursor:pointer; align-self:flex-end; margin-bottom:1.25rem; }
+.sb-logo-customer { font-family:'Fraunces',Georgia,serif; font-size:13px; background:linear-gradient(135deg,#F4D78A,#C9A961); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:3px; }
+.customer-greeting { font-family:'Fraunces',Georgia,serif; font-size:1.625rem; font-weight:700; color:white; line-height:1.2; margin-bottom:3px; }
+.customer-vehicle-text { font-size:0.8125rem; color:rgba(255,255,255,0.45); margin-bottom:1.5rem; }
+.customer-rep-block { display:flex; align-items:center; gap:0.875rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:0.875rem; margin-bottom:1.5rem; }
+.customer-rep-avatar { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#0A1628; font-family:'Fraunces',serif; flex-shrink:0; }
+.customer-rep-name-text { font-size:1rem; font-weight:600; color:white; }
+.customer-rep-status-text { font-size:0.75rem; color:#4ade80; margin-top:3px; }
+.customer-stages-list { display:flex; flex-direction:column; gap:0.875rem; flex:1; }
+.customer-stage-row { display:flex; align-items:center; gap:0.875rem; }
+.customer-stage-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; transition:all 0.4s; }
+.customer-stage-dot.cdone { background:linear-gradient(135deg,#F4D78A,#C9A961); }
+.customer-stage-dot.cactive { background:linear-gradient(135deg,#F4D78A,#C9A961); box-shadow:0 0 12px rgba(201,169,97,0.5); animation:pdot 1.5s ease-in-out infinite; }
+.customer-stage-dot.cfuture { background:rgba(255,255,255,0.1); }
+.customer-stage-label { font-family:'Fraunces',Georgia,serif; font-size:1rem; transition:all 0.3s; }
+.customer-stage-label.cactive { color:white; font-size:1.1875rem; }
+.customer-stage-label.cdone { color:rgba(255,255,255,0.45); }
+.customer-stage-label.cfuture { color:rgba(255,255,255,0.18); }
+
+/* ═══════════════════════════════════════════
+   AI FAB
+═══════════════════════════════════════════ */
+.ai-fab { position:fixed; bottom:1.5rem; right:50%; transform:translateX(calc(50% - 1rem + 14rem)); width:3.5rem; height:3.5rem; border-radius:50%; background:linear-gradient(135deg,#C9A961,#B8943F); box-shadow:0 8px 32px rgba(201,169,97,0.4); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; z-index:50; color:white; }
+@media(max-width:448px) { .ai-fab { right:1rem; transform:none; } }
+
+/* ═══════════════════════════════════════════
+   DEMO NAV BAR (top)
+═══════════════════════════════════════════ */
+.demo-bar { position:fixed; top:0; left:0; right:0; padding:0.375rem 1rem; background:rgba(0,0,0,0.7); backdrop-filter:blur(20px); z-index:200; display:flex; gap:0.5rem; align-items:center; justify-content:center; font-size:0.75rem; color:rgba(255,255,255,0.6); }
+.demo-link { color:#C9A961; text-decoration:none; font-weight:500; cursor:pointer; background:none; border:none; font-size:0.75rem; font-family:'Inter',sans-serif; }
+.demo-link:hover { text-decoration:underline; }
+body.has-bar .app-frame { padding-top:2rem; }
+</style>
+</head>
+<body class="has-bar">
+
+<!-- Demo nav -->
+<div class="demo-bar">
+  <span>📱 Stay Blessed v2</span>
+  <span>·</span>
+  <button class="demo-link" onclick="goTo('home')">Home</button>
+  <button class="demo-link" onclick="goTo('capture')">Capture</button>
+  <button class="demo-link" onclick="goTo('verify')">Verify</button>
+  <button class="demo-link" onclick="goTo('tracker')">Tracker</button>
+</div>
+
+<div class="app-frame">
+  <div class="ambient"><div class="orb1"></div><div class="orb2"></div></div>
+
+  <!-- ════════════════════════════════
+       SCREEN 1 — HOME
+  ════════════════════════════════ -->
+  <div class="screen active" id="screen-home">
+    <div class="home-content" style="padding:0 1.25rem 8rem;">
+
+      <!-- Wordmark bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 0 1rem;">
+        <svg class="wordmark-svg" viewBox="0 0 648 72.12" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="goldG" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#F4D78A"/>
+              <stop offset="100%" style="stop-color:#C9A961"/>
+            </linearGradient>
+          </defs>
+          <!-- STAY BLESSED — gold -->
+          <path fill="url(#goldG)" d="M35.68,28.19c-0.69-0.88-1.59-1.58-2.7-2.09c-1.11-0.52-2.18-0.78-3.22-0.78c-0.53,0-1.07,0.05-1.62,0.14c-0.55,0.09-1.04,0.28-1.48,0.54c-0.44,0.27-0.81,0.61-1.1,1.04c-0.3,0.42-0.45,0.96-0.45,1.62c0,0.56,0.12,1.04,0.35,1.41c0.23,0.38,0.58,0.71,1.03,0.99c0.45,0.28,0.99,0.54,1.62,0.78c0.63,0.24,1.33,0.48,2.11,0.73c1.13,0.38,2.3,0.79,3.52,1.25c1.22,0.46,2.33,1.06,3.34,1.81c1,0.75,1.83,1.69,2.49,2.8c0.66,1.11,0.99,2.5,0.99,4.17c0,1.91-0.35,3.57-1.06,4.97c-0.7,1.4-1.65,2.55-2.84,3.46c-1.19,0.91-2.55,1.58-4.09,2.02c-1.54,0.44-3.12,0.66-4.75,0.66c-2.38,0-4.68-0.42-6.91-1.25c-2.22-0.83-4.07-2.02-5.54-3.55l5.26-5.37c0.81,1,1.89,1.84,3.22,2.52c1.33,0.68,2.65,1.01,3.97,1.01c0.59,0,1.17-0.06,1.74-0.19c0.56-0.13,1.06-0.33,1.48-0.61c0.42-0.28,0.76-0.66,1.01-1.13c0.25-0.47,0.38-1.04,0.38-1.69c0-0.63-0.16-1.16-0.47-1.6c-0.31-0.44-0.76-0.84-1.34-1.2c-0.58-0.36-1.3-0.69-2.16-0.99c-0.86-0.3-1.84-0.62-2.94-0.96c-1.07-0.34-2.11-0.75-3.12-1.22c-1.02-0.47-1.93-1.07-2.73-1.81c-0.8-0.74-1.44-1.63-1.93-2.68c-0.49-1.05-0.73-2.33-0.73-3.84c0-1.85,0.38-3.44,1.13-4.75c0.75-1.32,1.74-2.4,2.96-3.25c1.22-0.85,2.6-1.47,4.13-1.86c1.53-0.39,3.08-0.59,4.65-0.59c1.88,0,3.8,0.35,5.76,1.04c1.96,0.69,3.67,1.71,5.15,3.06L35.68,28.19z M59.5,26.4v26.45h-8.03V26.4h-9.4v-6.87H68.9v6.87H59.5z M92.3,52.85l-2.58-6.54H76.84l-2.44,6.54h-8.74l13.95-33.32h7.8l13.81,33.32H92.3z M83.37,28.42l-4.23,11.44h8.36L83.37,28.42z M117.34,38.73v14.12h-8.03V38.73l-12.5-19.2h9.73l7.09,12.33l7.09-12.33h9.4L117.34,38.73z M169.17,43.15c0,1.82-0.36,3.35-1.08,4.59c-0.72,1.24-1.68,2.24-2.87,2.99c-1.19,0.75-2.55,1.29-4.06,1.62c-1.52,0.33-3.08,0.49-4.68,0.49h-13.25V19.53h13.25c1.28,0,2.6,0.13,3.95,0.4c1.35,0.27,2.57,0.72,3.66,1.36c1.1,0.64,1.99,1.51,2.68,2.61c0.69,1.1,1.03,2.49,1.03,4.19c0,1.85-0.5,3.38-1.5,4.59c-1,1.21-2.32,2.08-3.95,2.61v0.09c0.94,0.16,1.82,0.45,2.65,0.87c0.83,0.42,1.55,0.96,2.16,1.62c0.61,0.66,1.1,1.43,1.46,2.31C168.99,41.07,169.17,42.05,169.17,43.15z M160.05,29.17c0-1.13-0.43-1.95-1.29-2.47c-0.86-0.52-2.14-0.78-3.83-0.78h-3.95v6.87h4.32c1.5,0,2.67-0.31,3.5-0.92C159.64,31.27,160.05,30.37,160.05,29.17z M161.13,42.4c0-1.38-0.52-2.34-1.55-2.87c-1.03-0.53-2.41-0.8-4.13-0.8h-4.46v7.62h4.51c0.63,0,1.28-0.05,1.95-0.16c0.67-0.11,1.28-0.31,1.83-0.59c0.55-0.28,0.99-0.68,1.34-1.2C160.96,43.88,161.13,43.22,161.13,42.4z M174.48,52.85V19.53h8.08v26.31h12.87v7.01H174.48z M199.2,52.85V19.53h22.37v6.78h-14.61v6.31h13.81v6.45h-13.81v6.92h15.46v6.87H199.2z M245.29,28.19c-0.69-0.88-1.59-1.58-2.7-2.09c-1.11-0.52-2.18-0.78-3.22-0.78c-0.53,0-1.07,0.05-1.62,0.14c-0.55,0.09-1.04,0.28-1.48,0.54c-0.44,0.27-0.81,0.61-1.1,1.04c-0.3,0.42-0.45,0.96-0.45,1.62c0,0.56,0.12,1.04,0.35,1.41c0.23,0.38,0.58,0.71,1.03,0.99c0.45,0.28,0.99,0.54,1.62,0.78c0.63,0.24,1.33,0.48,2.11,0.73c1.13,0.38,2.3,0.79,3.52,1.25c1.22,0.46,2.33,1.06,3.34,1.81c1,0.75,1.83,1.69,2.49,2.8c0.66,1.11,0.99,2.5,0.99,4.17c0,1.91-0.35,3.57-1.06,4.97c-0.7,1.4-1.65,2.55-2.84,3.46c-1.19,0.91-2.55,1.58-4.09,2.02c-1.54,0.44-3.12,0.66-4.75,0.66c-2.38,0-4.68-0.42-6.91-1.25c-2.22-0.83-4.07-2.02-5.54-3.55l5.26-5.37c0.81,1,1.89,1.84,3.22,2.52c1.33,0.68,2.65,1.01,3.97,1.01c0.59,0,1.17-0.06,1.74-0.19c0.56-0.13,1.06-0.33,1.48-0.61c0.42-0.28,0.76-0.66,1.01-1.13c0.25-0.47,0.38-1.04,0.38-1.69c0-0.63-0.16-1.16-0.47-1.6c-0.31-0.44-0.76-0.84-1.34-1.2c-0.58-0.36-1.3-0.69-2.16-0.99c-0.86-0.3-1.84-0.62-2.94-0.96c-1.07-0.34-2.11-0.75-3.12-1.22c-1.02-0.47-1.93-1.07-2.73-1.81c-0.8-0.74-1.44-1.63-1.93-2.68c-0.49-1.05-0.73-2.33-0.73-3.84c0-1.85,0.38-3.44,1.13-4.75c0.75-1.32,1.74-2.4,2.96-3.25c1.22-0.85,2.6-1.47,4.13-1.86c1.53-0.39,3.08-0.59,4.65-0.59c1.88,0,3.8,0.35,5.76,1.04c1.96,0.69,3.67,1.71,5.15,3.06L245.29,28.19z M273.06,28.19c-0.69-0.88-1.59-1.58-2.7-2.09c-1.11-0.52-2.18-0.78-3.22-0.78c-0.53,0-1.07,0.05-1.62,0.14c-0.55,0.09-1.04,0.28-1.48,0.54c-0.44,0.27-0.81,0.61-1.1,1.04c-0.3,0.42-0.45,0.96-0.45,1.62c0,0.56,0.12,1.04,0.35,1.41c0.23,0.38,0.58,0.71,1.03,0.99c0.45,0.28,0.99,0.54,1.62,0.78c0.63,0.24,1.33,0.48,2.11,0.73c1.13,0.38,2.3,0.79,3.52,1.25c1.22,0.46,2.33,1.06,3.34,1.81c1,0.75,1.83,1.69,2.49,2.8c0.66,1.11,0.99,2.5,0.99,4.17c0,1.91-0.35,3.57-1.06,4.97c-0.7,1.4-1.65,2.55-2.84,3.46c-1.19,0.91-2.55,1.58-4.09,2.02c-1.54,0.44-3.12,0.66-4.75,0.66c-2.38,0-4.68-0.42-6.91-1.25c-2.22-0.83-4.07-2.02-5.54-3.55l5.26-5.37c0.81,1,1.89,1.84,3.22,2.52c1.33,0.68,2.65,1.01,3.97,1.01c0.59,0,1.17-0.06,1.74-0.19c0.56-0.13,1.06-0.33,1.48-0.61c0.42-0.28,0.76-0.66,1.01-1.13c0.25-0.47,0.38-1.04,0.38-1.69c0-0.63-0.16-1.16-0.47-1.6c-0.31-0.44-0.76-0.84-1.34-1.2c-0.58-0.36-1.3-0.69-2.16-0.99c-0.86-0.3-1.84-0.62-2.94-0.96c-1.07-0.34-2.11-0.75-3.12-1.22c-1.02-0.47-1.93-1.07-2.73-1.81c-0.8-0.74-1.44-1.63-1.93-2.68c-0.49-1.05-0.73-2.33-0.73-3.84c0-1.85,0.38-3.44,1.13-4.75c0.75-1.32,1.74-2.4,2.96-3.25c1.22-0.85,2.6-1.47,4.13-1.86c1.53-0.39,3.08-0.59,4.65-0.59c1.88,0,3.8,0.35,5.76,1.04c1.96,0.69,3.67,1.71,5.15,3.06L273.06,28.19z M283.25,52.85V19.53h22.37v6.78H291v6.31h13.81v6.45H291v6.92h15.46v6.87H283.25z M342.83,36.09c0,2.92-0.54,5.44-1.62,7.55c-1.08,2.12-2.51,3.86-4.28,5.22c-1.77,1.36-3.77,2.37-5.99,3.01c-2.22,0.64-4.48,0.96-6.77,0.96h-12.4V19.53h12.03c2.35,0,4.67,0.28,6.95,0.82c2.29,0.55,4.32,1.46,6.11,2.73c1.79,1.27,3.23,2.97,4.32,5.11C342.28,30.32,342.83,32.96,342.83,36.09z M334.46,36.09c0-1.88-0.31-3.44-0.92-4.68c-0.61-1.24-1.43-2.23-2.44-2.97c-1.02-0.74-2.18-1.26-3.48-1.58c-1.3-0.31-2.64-0.47-4.02-0.47h-3.99v19.49h3.81c1.44,0,2.83-0.16,4.16-0.49c1.33-0.33,2.51-0.87,3.52-1.62c1.02-0.75,1.83-1.76,2.44-3.01C334.16,39.5,334.46,37.94,334.46,36.09z"/>
+          <!-- INSURANCE — white -->
+          <path fill="white" d="M360.05,53.04V19.72h8.08v33.32H360.05z M396.13,53.04l-13.39-21.79h-0.14l0.19,21.79h-7.8V19.72h9.16l13.34,21.75h0.14l-0.19-21.75h7.8v33.32H396.13z M429.68,28.38c-0.69-0.88-1.59-1.58-2.7-2.09c-1.11-0.52-2.18-0.78-3.22-0.78c-0.53,0-1.07,0.05-1.62,0.14c-0.55,0.09-1.04,0.28-1.48,0.54c-0.44,0.27-0.81,0.61-1.1,1.04c-0.3,0.42-0.45,0.96-0.45,1.62c0,0.56,0.12,1.04,0.35,1.41c0.23,0.38,0.58,0.71,1.03,0.99c0.45,0.28,0.99,0.54,1.62,0.78c0.63,0.24,1.33,0.48,2.11,0.73c1.13,0.38,2.3,0.79,3.52,1.25c1.22,0.46,2.33,1.06,3.34,1.81c1,0.75,1.83,1.69,2.49,2.8c0.66,1.11,0.99,2.5,0.99,4.17c0,1.91-0.35,3.57-1.06,4.97c-0.7,1.4-1.65,2.55-2.84,3.46c-1.19,0.91-2.55,1.58-4.09,2.02c-1.54,0.44-3.12,0.66-4.75,0.66c-2.38,0-4.68-0.42-6.91-1.25c-2.22-0.83-4.07-2.02-5.54-3.55l5.26-5.37c0.81,1,1.89,1.84,3.22,2.52c1.33,0.68,2.65,1.01,3.97,1.01c0.59,0,1.17-0.06,1.74-0.19c0.56-0.13,1.06-0.33,1.48-0.61c0.42-0.28,0.76-0.66,1.01-1.13c0.25-0.47,0.38-1.04,0.38-1.69c0-0.63-0.16-1.16-0.47-1.6c-0.31-0.44-0.76-0.84-1.34-1.2c-0.58-0.36-1.3-0.69-2.16-0.99c-0.86-0.3-1.84-0.62-2.94-0.96c-1.07-0.34-2.11-0.75-3.12-1.22c-1.02-0.47-1.93-1.07-2.73-1.81c-0.8-0.74-1.44-1.63-1.93-2.68c-0.49-1.05-0.73-2.33-0.73-3.84c0-1.85,0.38-3.44,1.13-4.75c0.75-1.32,1.74-2.4,2.96-3.25c1.22-0.85,2.6-1.47,4.13-1.86c1.53-0.39,3.08-0.59,4.65-0.59c1.88,0,3.8,0.35,5.76,1.04c1.96,0.69,3.67,1.71,5.15,3.06L429.68,28.38z M468.07,40.47c0,2.01-0.34,3.84-1.01,5.48c-0.67,1.65-1.64,3.06-2.89,4.24c-1.25,1.18-2.76,2.09-4.53,2.75c-1.77,0.66-3.74,0.99-5.9,0.99c-2.19,0-4.17-0.33-5.92-0.99c-1.75-0.66-3.24-1.58-4.46-2.75c-1.22-1.18-2.16-2.59-2.82-4.24c-0.66-1.65-0.99-3.47-0.99-5.48V19.72h7.99v20.1c0,0.91,0.12,1.77,0.35,2.59c0.23,0.82,0.59,1.55,1.08,2.19c0.49,0.64,1.13,1.15,1.93,1.53c0.8,0.38,1.76,0.56,2.89,0.56c1.13,0,2.09-0.19,2.89-0.56c0.8-0.38,1.45-0.89,1.95-1.53c0.5-0.64,0.86-1.37,1.08-2.19c0.22-0.82,0.33-1.68,0.33-2.59v-20.1h8.03V40.47z M492.37,53.04l-7.22-13.23h-2.74v13.23h-7.85V19.72h12.69c1.6,0,3.16,0.16,4.68,0.49c1.52,0.33,2.88,0.89,4.09,1.67c1.21,0.78,2.17,1.82,2.89,3.11c0.72,1.29,1.08,2.89,1.08,4.8c0,2.26-0.61,4.16-1.83,5.7c-1.22,1.54-2.91,2.64-5.07,3.29l8.69,14.26H492.37z M492.04,29.93c0-0.78-0.17-1.42-0.5-1.91c-0.33-0.49-0.76-0.86-1.27-1.13c-0.52-0.27-1.1-0.45-1.75-0.54s-1.27-0.14-1.86-0.14h-4.3v7.77h3.82c0.66,0,1.34-0.05,2.03-0.16c0.69-0.11,1.32-0.31,1.89-0.59c0.57-0.28,1.03-0.69,1.39-1.22C491.86,31.47,492.04,30.78,492.04,29.93z M528.26,53.04l-2.58-6.54H512.8l-2.44,6.54h-8.74l13.95-33.32h7.8l13.81,33.32H528.26z M519.33,28.61l-4.23,11.44h8.36L519.33,28.61z M561.11,53.04l-13.39-21.79h-0.14l0.19,21.79h-7.8V19.72h9.16l13.34,21.75h0.14l-0.19-21.75h7.8v33.32H561.11z M606.36,48.43c-1.47,1.69-3.29,3.04-5.45,4.02c-2.16,0.99-4.65,1.48-7.47,1.48c-2.57,0-4.94-0.42-7.12-1.27c-2.18-0.85-4.06-2.05-5.66-3.6s-2.85-3.41-3.76-5.58c-0.91-2.17-1.36-4.55-1.36-7.15c0-2.67,0.46-5.08,1.39-7.25c0.92-2.17,2.2-4.01,3.83-5.53c1.63-1.52,3.54-2.69,5.73-3.51c2.19-0.82,4.56-1.22,7.09-1.22c2.35,0,4.66,0.42,6.93,1.25c2.27,0.83,4.11,2.05,5.52,3.65l-5.45,5.46c-0.75-1.04-1.74-1.8-2.96-2.31c-1.22-0.5-2.47-0.75-3.76-0.75c-1.41,0-2.7,0.26-3.88,0.78c-1.17,0.52-2.18,1.23-3.03,2.14c-0.85,0.91-1.5,1.98-1.97,3.22c-0.47,1.24-0.7,2.6-0.7,4.07c0,1.51,0.23,2.89,0.7,4.14c0.47,1.26,1.12,2.33,1.95,3.22c0.83,0.89,1.82,1.59,2.98,2.09c1.16,0.5,2.43,0.75,3.81,0.75c1.6,0,2.99-0.31,4.18-0.94c1.19-0.63,2.15-1.44,2.87-2.45L606.36,48.43z M609.78,53.04V19.72h22.37v6.78h-14.61v6.31h13.81v6.45h-13.81v6.92h15.46v6.87H609.78z"/>
+          <!-- ® -->
+          <path fill="rgba(201,169,97,0.7)" d="M639.11,17.8h-0.81v1.8h-1.01v-4.91h1.83c0.58,0,1.03,0.13,1.34,0.39c0.31,0.26,0.47,0.62,0.47,1.1c0,0.33-0.07,0.61-0.22,0.84c-0.15,0.22-0.37,0.4-0.66,0.54l1.06,2.01v0.05h-1.09L639.11,17.8z M638.31,16.98h0.82c0.25,0,0.45-0.06,0.59-0.19c0.14-0.13,0.21-0.31,0.21-0.53c0-0.23-0.07-0.41-0.2-0.55c-0.13-0.13-0.33-0.2-0.61-0.2h-0.81V16.98z"/>
+          <path fill="rgba(201,169,97,0.7)" d="M639.21,22.16c-2.77,0-5.02-2.25-5.02-5.02s2.25-5.02,5.02-5.02s5.02,2.25,5.02,5.02S641.98,22.16,639.21,22.16z M639.21,13.12c-2.22,0-4.02,1.8-4.02,4.02s1.8,4.02,4.02,4.02s4.02-1.8,4.02-4.02S641.43,13.12,639.21,13.12z"/>
+        </svg>
+        <button class="icon-btn" aria-label="Notifications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/></svg>
+          <div class="badge"></div>
+        </button>
+      </div>
+
+      <!-- Greeting -->
+      <div class="fade-in" style="margin-bottom:0.5rem;">
+        <div class="online-pill" style="margin-bottom:0.5rem;">
+          <div class="online-dot" style="position:relative;"></div>
+          <span class="online-text">Online</span>
+        </div>
+        <div class="greeting-sm">Good morning,</div>
+        <div class="font-display rep-name-lg">Lee Martinez</div>
+        <div class="dealership-sm">Premier Auto Group</div>
+      </div>
+
+      <div class="brand-line"></div>
+
+      <!-- New Submission CTA -->
+      <button class="primary-action slide-up" style="animation-delay:0.1s;" onclick="goTo('capture')">
+        <div class="primary-action-glow"></div>
+        <div class="primary-action-inner">
+          <div class="action-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg>
+          </div>
+          <div class="action-text">
+            <div class="font-display action-title">New Submission</div>
+            <div class="action-sub">Snap the Bill of Sale → bound in minutes</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+        </div>
+      </button>
+
+      <!-- Stats -->
+      <div class="stats slide-up" style="animation-delay:0.15s;">
+        <div class="stat-card glass">
+          <div class="stat-label">Today</div>
+          <div class="font-display stat-value">3</div>
+          <div class="stat-sub">submissions</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-label">Week</div>
+          <div class="font-display stat-value">14</div>
+          <div class="stat-sub">submissions</div>
+        </div>
+        <div class="stat-card glass">
+          <div class="stat-glow"></div>
+          <div class="stat-label">Bind Rate</div>
+          <div class="font-display stat-value gold-text">89%</div>
+          <div class="stat-trend">
+            <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.306a11.95 11.95 0 015.814-5.518l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
+            <span class="stat-trend-text">+2% mo</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- In Progress -->
+      <div class="slide-up" style="animation-delay:0.2s;">
+        <div class="section-head">
+          <h3 class="font-display section-title">In Progress</h3>
+          <button class="section-link">View All</button>
+        </div>
+        <div class="sub-list">
+          <button class="sub-card" onclick="goToTracker(3)">
+            <div class="sub-head">
+              <div>
+                <div class="font-display sub-customer">Maria Rodriguez</div>
+                <div class="sub-meta">2022 Honda CR-V · SB-2401</div>
+              </div>
+              <div class="live-pill">
+                <div class="live-dot" style="position:relative;"></div>
+                <span class="live-text">Live</span>
+              </div>
+            </div>
+            <div class="stage-bar">
+              <div class="stage-segment stage-active"></div>
+              <div class="stage-segment stage-active"></div>
+              <div class="stage-segment stage-active"></div>
+              <div class="stage-segment stage-inactive"></div>
+              <div class="stage-segment stage-inactive"></div>
+            </div>
+            <div class="sub-foot">
+              <div><span class="sub-status-active">Quoting</span><span class="sub-status-rep"> · Rep on call</span></div>
+              <span class="sub-eta">~3 min</span>
+            </div>
+          </button>
+          <button class="sub-card" onclick="goToTracker(2)">
+            <div class="sub-head">
+              <div>
+                <div class="font-display sub-customer">Aisha Patel</div>
+                <div class="sub-meta">2024 Tesla Model Y · SB-2395</div>
+              </div>
+              <div class="live-pill">
+                <div class="live-dot" style="position:relative;"></div>
+                <span class="live-text">Live</span>
+              </div>
+            </div>
+            <div class="stage-bar">
+              <div class="stage-segment stage-active"></div>
+              <div class="stage-segment stage-active"></div>
+              <div class="stage-segment stage-inactive"></div>
+              <div class="stage-segment stage-inactive"></div>
+              <div class="stage-segment stage-inactive"></div>
+            </div>
+            <div class="sub-foot">
+              <div><span class="sub-status-active">Calling</span><span class="sub-status-rep"> · Rep on call</span></div>
+              <span class="sub-eta">now</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Recent Wins -->
+      <div class="recent-section slide-up" style="animation-delay:0.25s;">
+        <div class="recent-label">Recent Wins</div>
+        <div class="recent-card">
+          <div class="recent-icon-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:0.875rem;font-weight:500;">James Carter</div>
+            <div style="color:rgba(255,255,255,0.4);font-size:0.75rem;">Bound · 47 min ago</div>
+          </div>
+          <span style="font-size:0.75rem;color:#34d399;">+1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SCREEN 2 — CAPTURE
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-capture">
+
+    <div class="cap-header">
+      <button class="icon-btn" onclick="goTo('home')" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div class="cap-title">Bill of Sale · 1 of 1</div>
+      <div style="width:2.75rem;"></div>
+    </div>
+
+    <div class="greeting-strip" id="greeting-strip">
+      <div class="greeting-text">
+        Hey <span class="greeting-name">Lee</span>, let's get your customer insured! <span class="car-flip">🚗</span>
+      </div>
+    </div>
+
+    <div class="viewfinder" id="viewfinder">
+      <div class="doc-mock" id="doc-mock">
+        <div class="doc-title">PREMIER AUTO GROUP</div>
+        <div class="doc-sub">BILL OF SALE</div>
+        <div class="doc-line lg" style="width:75%;"></div>
+        <div class="doc-line lg" style="width:60%;"></div>
+        <div class="doc-line sm" style="width:100%;margin-top:6px;"></div>
+        <div class="doc-line sm" style="width:100%;"></div>
+        <div class="doc-line sm" style="width:80%;"></div>
+        <div class="doc-line sm" style="width:100%;margin-top:6px;"></div>
+        <div class="doc-line sm" style="width:100%;"></div>
+        <div class="doc-line sm" style="width:66%;"></div>
+        <div class="doc-line sm" style="width:100%;margin-top:6px;"></div>
+        <div class="doc-line sm" style="width:90%;"></div>
+        <div class="scanner-line" id="scanner-line"></div>
+      </div>
+
+      <div class="frame-corners" id="frame-corners">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+      </div>
+
+      <div class="flash-overlay" id="flash-overlay"></div>
+
+      <div class="processing-overlay" id="processing-overlay">
+        <div class="processing-row">
+          <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          <span class="processing-text">Reading document...</span>
+        </div>
+        <div class="processing-sub">Extracting buyer, vehicle & dealer info</div>
+        <div class="ocr-steps">
+          <div class="ocr-step" id="step1"><div class="step-dot"></div>Detecting document edges</div>
+          <div class="ocr-step" id="step2"><div class="step-dot"></div>Extracting text fields</div>
+          <div class="ocr-step" id="step3"><div class="step-dot"></div>Validating VIN with NHTSA</div>
+          <div class="ocr-step" id="step4"><div class="step-dot"></div>Calculating confidence scores</div>
+        </div>
+      </div>
+
+      <div class="captured-overlay" id="captured-overlay">
+        <div class="check-circle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+        </div>
+        <div class="font-display captured-text">Captured</div>
+      </div>
+    </div>
+
+    <div class="cap-controls" id="cap-controls">
+      <div class="cap-hint" id="cap-hint">Align the Bill of Sale in the frame — edges will snap when ready.</div>
+      <div class="shutter-wrap">
+        <button class="side-btn" aria-label="Upload from gallery">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+        </button>
+        <button class="shutter-btn" id="shutter-btn" onclick="doCapture()" aria-label="Take photo">
+          <div class="shutter-ring"></div>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0A1628" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/></svg>
+        </button>
+        <button class="side-btn" aria-label="Toggle flash">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SCREEN 3 — VERIFY
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-verify">
+
+    <div class="verify-header">
+      <button class="icon-btn" onclick="goTo('home')" aria-label="Back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+      </button>
+      <div>
+        <div class="font-display verify-title">Verify Details</div>
+        <div class="verify-sub">2 docs scanned · Tap any field to edit</div>
+      </div>
+    </div>
+
+    <!-- Sources legend -->
+    <div class="sources-bar">
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <div class="source-pill bos"><div class="source-dot bos"></div>Bill of Sale</div>
+        <div class="source-pill dl"><div class="source-dot dl"></div>Driver's License</div>
+      </div>
+      <div class="sources-rule">Bill of Sale address overrides license — it's more current.</div>
+    </div>
+
+    <!-- Customer -->
+    <div class="field-group">
+      <div class="field-group-label">Customer</div>
+      <div class="field-list">
+        <div class="field-row">
+          <div class="field-content"><div class="field-label">Full name</div><div class="field-value">Maria Rodriguez</div></div>
+          <div class="field-source bos">Bill of Sale</div>
+        </div>
+        <div class="field-row">
+          <div class="field-content"><div class="field-label">Date of birth</div><div class="field-value">03 / 14 / 1989</div></div>
+          <div class="field-source dl">License</div>
+        </div>
+        <!-- Address conflict -->
+        <div class="conflict-row">
+          <div class="conflict-label">Address <span style="color:#C9A961;font-weight:600;">· conflict resolved</span></div>
+          <div class="conflict-options">
+            <div class="conflict-option winner">
+              <div>
+                <div class="conflict-value">742 Collins Ave, Miami Beach FL 33139</div>
+                <div style="font-size:9px;color:rgba(255,255,255,0.4);margin-top:2px;">Bill of Sale is more current</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;">
+                <div class="conflict-badge bos">Bill of Sale</div>
+                <div class="winner-tag">✓ Used</div>
+              </div>
+            </div>
+            <div class="conflict-option loser">
+              <div class="conflict-value">1204 SW 8th St, Miami FL 33135</div>
+              <div class="conflict-badge dl">License</div>
+            </div>
+          </div>
+        </div>
+        <!-- Phone -->
+        <div class="input-row">
+          <div class="input-label-row">
+            <div class="input-field-label">Phone number</div>
+            <div class="required-tag">Required</div>
+          </div>
+          <input class="text-input prefilled" id="phone-input" type="tel" value="(305) 555-0142">
+          <div class="prefilled-note">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Found on Bill of Sale — confirm or edit
+          </div>
+        </div>
+        <!-- Email -->
+        <div class="input-row">
+          <div class="input-label-row">
+            <div class="input-field-label">Email address</div>
+            <div class="required-tag">Required</div>
+          </div>
+          <input class="text-input" id="email-input" type="email" placeholder="customer@email.com" oninput="checkSubmit()">
+        </div>
+        <!-- License -->
+        <div class="field-row">
+          <div class="field-content"><div class="field-label">License number</div><div class="field-value">R530-412-89-xxx-0</div></div>
+          <div class="field-source dl">License</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle -->
+    <div class="field-group">
+      <div class="field-group-label">Vehicle</div>
+      <div class="field-list">
+        <div class="field-row">
+          <div class="field-content"><div class="field-label">VIN</div><div class="field-value">5J6RW1H58NL023417</div></div>
+          <div class="field-badge verified">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            NHTSA
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-content"><div class="field-label">Year / Make / Model</div><div class="field-value">2022 Honda CR-V EX-L</div></div>
+          <div class="field-source nhtsa">NHTSA</div>
+        </div>
+        <!-- Mileage optional -->
+        <div class="input-row">
+          <div class="input-label-row">
+            <div class="input-field-label">Mileage</div>
+            <div class="optional-tag">Optional</div>
+          </div>
+          <input class="text-input prefilled" type="text" value="12,847">
+          <div class="prefilled-note">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#C9A961" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Found on Bill of Sale — confirm or edit
+          </div>
+          <div class="field-hint">Only required if quoting with UAIC</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lienholder -->
+    <div class="field-group">
+      <div class="field-group-label">Lienholder</div>
+      <div class="field-list">
+        <div class="field-row">
+          <div class="field-content"><div class="field-label">Name</div><div class="field-value">Honda Financial Services</div></div>
+          <div class="field-source bos">Bill of Sale</div>
+        </div>
+        <div class="field-row">
+          <div class="field-content"><div class="field-label">Account #</div><div class="field-value">****8472</div></div>
+          <div class="field-badge warn">Verify</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="submit-wrap">
+      <button class="submit-btn blocked" id="submit-btn" onclick="submitToTracker()">
+        <span>Submit to Stay Blessed</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/></svg>
+      </button>
+      <div class="submit-note" id="submit-note">Email required before submitting</div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SCREEN 4 — TRACKER
+  ════════════════════════════════ -->
+  <div class="screen" id="screen-tracker">
+
+    <div class="tracker-header">
+      <button class="icon-btn" onclick="goTo('home')" aria-label="Back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+      </button>
+      <button class="show-customer-btn" id="show-customer-btn" onclick="toggleCustomerMode()">Show Customer</button>
+    </div>
+
+    <div class="tracker-info">
+      <div class="tracker-id">SB-2401</div>
+      <div class="font-display tracker-name">Maria Rodriguez</div>
+      <div class="tracker-vehicle">2022 Honda CR-V · Premier Auto Group</div>
+    </div>
+
+    <!-- Rep card — populated by whoever taps "Mark Calling" in Telegram -->
+    <div class="rep-card" id="rep-card" style="display:none;">
+      <div class="rep-avatar" id="rep-avatar" style="background:linear-gradient(135deg,#C9A961,#8a6e38);color:#0A1628;"></div>
+      <div style="flex:1;">
+        <div class="rep-name-text" id="rep-name-text">Waiting for rep...</div>
+        <div class="rep-role-text" id="rep-role-text">First to answer the call gets assigned</div>
+        <div class="rep-action-text" id="rep-action-text"></div>
+      </div>
+      <div class="active-pill" id="active-pill">
+        <div class="active-dot"></div>
+        <span class="active-text">Active</span>
+      </div>
+    </div>
+
+    <div class="stages-list" id="stages-list"></div>
+
+    <div class="bound-card" id="bound-card">
+      <div style="font-size:1.25rem;margin-bottom:0.5rem;">🎉 🏆 ✅</div>
+      <div class="bound-title">Deal closed in 6 minutes</div>
+      <div class="bound-sub" id="bound-sub">Welcome packet emailed to Maria. Your rep will follow up within 24–48 hours.</div>
+    </div>
+
+    <!-- Customer view overlay -->
+    <div class="customer-overlay hidden" id="customer-overlay">
+      <button class="customer-back-btn" onclick="toggleCustomerMode()">Internal View</button>
+      <div class="sb-logo-customer">Stay Blessed Insurance</div>
+      <div class="font-display customer-greeting" id="customer-greeting">Maria, we're on it!</div>
+      <div class="customer-vehicle-text">2022 Honda CR-V</div>
+      <div class="customer-rep-block" id="customer-rep-block" style="display:none;">
+        <div class="customer-rep-avatar" id="customer-rep-avatar"></div>
+        <div>
+          <div class="customer-rep-name-text" id="customer-rep-name-text"></div>
+          <div class="customer-rep-status-text" id="customer-rep-status-text"></div>
+        </div>
+      </div>
+      <div class="customer-stages-list" id="customer-stages-list"></div>
+    </div>
+  </div>
+
+  <!-- AI FAB -->
+  <button class="ai-fab" aria-label="AI Assistant">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg>
+  </button>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function goTo(screenId) {
+  const screens = document.querySelectorAll('.screen');
+  const current = document.querySelector('.screen.active');
+  const next = document.getElementById('screen-' + screenId);
+  if (!next || next === current) return;
+
+  if (current) {
+    current.classList.remove('active');
+    current.classList.add('slide-left');
+    setTimeout(() => current.classList.remove('slide-left'), 400);
+  }
+  next.classList.add('active');
+  next.scrollTop = 0;
+
+  // Reset capture if going there fresh
+  if (screenId === 'capture') resetCapture();
+}
+
+// Demo nav links
+document.querySelectorAll('.demo-link').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.textContent.toLowerCase();
+    if (t === 'tracker') goToTracker(3);
+    else goTo(t);
+  });
+});
+
+// ═══════════════════════════════════════════
+// CAPTURE FLOW
+// ═══════════════════════════════════════════
+let captureState = 'searching';
+let ocrTimer = null;
+
+function resetCapture() {
+  captureState = 'searching';
+  if (ocrTimer) { clearTimeout(ocrTimer); ocrTimer = null; }
+  document.getElementById('doc-mock').classList.remove('aligned', 'processing');
+  document.getElementById('frame-corners').classList.remove('snapped');
+  document.getElementById('processing-overlay').classList.remove('active');
+  document.getElementById('captured-overlay').classList.remove('active');
+  document.getElementById('cap-controls').style.display = 'flex';
+  document.getElementById('greeting-strip').style.opacity = '1';
+  document.getElementById('cap-hint').textContent = 'Align the Bill of Sale in the frame — edges will snap when ready.';
+  document.getElementById('cap-hint').className = 'cap-hint';
+  ['step1','step2','step3','step4'].forEach(id => document.getElementById(id).className = 'ocr-step');
+}
+
+function doCapture() {
+  if (captureState === 'searching') {
+    captureState = 'aligned';
+    document.getElementById('doc-mock').classList.add('aligned');
+    document.getElementById('frame-corners').classList.add('snapped');
+    document.getElementById('cap-hint').textContent = 'Document detected — tap to capture.';
+    document.getElementById('cap-hint').className = 'cap-hint green';
+    return;
+  }
+  if (captureState === 'aligned') {
+    const flash = document.getElementById('flash-overlay');
+    flash.classList.add('go');
+    setTimeout(() => {
+      flash.classList.remove('go');
+      captureState = 'processing';
+      document.getElementById('doc-mock').classList.add('processing');
+      document.getElementById('cap-controls').style.display = 'none';
+      document.getElementById('greeting-strip').style.opacity = '0';
+      document.getElementById('processing-overlay').classList.add('active');
+      animateOcrSteps();
+      setTimeout(() => {
+        document.getElementById('processing-overlay').classList.remove('active');
+        document.getElementById('captured-overlay').classList.add('active');
+        setTimeout(() => goTo('verify'), 800);
+      }, 3200);
+    }, 80);
+  }
+}
+
+function animateOcrSteps() {
+  const steps = ['step1','step2','step3','step4'];
+  let i = 0;
+  function next() {
+    if (i > 0) document.getElementById(steps[i-1]).className = 'ocr-step done';
+    if (i < steps.length) {
+      document.getElementById(steps[i]).className = 'ocr-step active';
+      i++;
+      ocrTimer = setTimeout(next, 700);
+    }
+  }
+  next();
+}
+
+// ═══════════════════════════════════════════
+// VERIFY FLOW
+// ═══════════════════════════════════════════
+function checkSubmit() {
+  const email = document.getElementById('email-input').value.trim();
+  const btn = document.getElementById('submit-btn');
+  const note = document.getElementById('submit-note');
+  if (email) {
+    btn.className = 'submit-btn';
+    note.textContent = 'Both documents saved to the submission record';
+  } else {
+    btn.className = 'submit-btn blocked';
+    note.textContent = 'Email required before submitting';
+  }
+}
+
+function submitToTracker() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email) return;
+  goToTracker(1);
+}
+
+// ═══════════════════════════════════════════
+// TRACKER
+// ═══════════════════════════════════════════
+const stagesData = [
+  { num:1, label:'Received',    icon:'doc',   msg: () => "Stay Blessed got your info — first available rep is being notified." },
+  { num:2, label:'Calling',     icon:'phone', msg: (r) => r ? `${r.firstName} is calling Maria now.` : "A Stay Blessed rep is calling Maria now." },
+  { num:3, label:'Quoting',     icon:'spark', msg: (r) => r ? `${r.firstName} is quoting with our markets.` : "Quoting with our markets.", eta:'~3–5 min' },
+  { num:4, label:'Quote Ready', icon:'send',  msg: (r) => r ? `Quote ready — ${r.firstName} is texting Maria now.` : "Quote ready — texting Maria now." },
+  { num:5, label:'Bound',       icon:'check', msg: (r) => r ? `Coverage active · Welcome packet sent. ${r.firstName} will follow up within 24–48 hrs.` : "Coverage active · Welcome packet sent." }
+];
+
+const customerStageLabels = ['Received','Calling you','Getting quotes','Quote ready',"You're covered! 🎉"];
+const customerRepStatus = [
+  'Team is on it',
+  (r) => r ? `${r.firstName} is calling you now` : 'Your rep is calling now',
+  (r) => r ? `${r.firstName} is finding your best rate` : 'Finding your best rate',
+  (r) => r ? `${r.firstName} is texting you the quote` : 'Your quote is on the way',
+  (r) => r ? `${r.firstName} will follow up soon` : 'Welcome to Stay Blessed!'
+];
+
+// Simulated rep data — in production this comes from whoever tapped "Mark Calling" in Telegram
+const simulatedRep = {
+  firstName: 'Sara',
+  fullName:  'Sara Bedoya',
+  initials:  'SB',
+  role:      'Operations & Production',
+  color:     'linear-gradient(135deg,#C9A961,#8a6e38)',
+  textColor: '#0A1628'
+};
+
+let trackerStage = 1;
+let trackerInterval = null;
+let assignedRep = null;
+
+function iconSvg(type, state) {
+  const col = state === 'active' ? '#C9A961' : state === 'complete' ? 'rgba(201,169,97,0.65)' : 'rgba(255,255,255,0.22)';
+  const icons = {
+    doc:   `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>`,
+    phone: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.105a2.25 2.25 0 00-2.326.94l-.879 1.32a.75.75 0 01-1.034.214 14.293 14.293 0 01-5.97-5.97.75.75 0 01.214-1.034l1.32-.879a2.25 2.25 0 00.94-2.326L7.385 4.5A1.125 1.125 0 006.294 3.75H4.875A2.25 2.25 0 002.25 6v.75z"/></svg>`,
+    spark: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.847.813a4.5 4.5 0 00-3.09 3.091z"/></svg>`,
+    send:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.125A59.769 59.769 0 0121.485 12 59.768 59.768 0 013.27 20.875L5.999 12zm0 0h7.5"/></svg>`,
+    check: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+  };
+  return icons[type] || '';
+}
+
+function renderTracker() {
+  const rep = assignedRep;
+
+  // Rep card
+  const repCard = document.getElementById('rep-card');
+  if (trackerStage >= 2 && rep) {
+    repCard.style.display = 'flex';
+    const av = document.getElementById('rep-avatar');
+    av.textContent = rep.initials;
+    av.style.background = rep.color;
+    av.style.color = rep.textColor;
+    document.getElementById('rep-name-text').textContent = rep.fullName;
+    document.getElementById('rep-role-text').textContent = rep.role;
+    const actionEl = document.getElementById('rep-action-text');
+    if (trackerStage === 2) { actionEl.textContent = `Calling Maria now`; actionEl.style.color = '#C9A961'; }
+    else if (trackerStage === 3) { actionEl.textContent = `Quoting with our markets`; actionEl.style.color = '#C9A961'; }
+    else if (trackerStage === 4) { actionEl.textContent = `Texting quote to Maria`; actionEl.style.color = '#C9A961'; }
+    else if (trackerStage === 5) { actionEl.textContent = `Deal complete ✓`; actionEl.style.color = '#4ade80'; }
+    document.getElementById('active-pill').style.display = trackerStage === 5 ? 'none' : 'flex';
+  } else if (trackerStage >= 2 && !rep) {
+    repCard.style.display = 'flex';
+    document.getElementById('rep-name-text').textContent = 'Waiting for available rep...';
+    document.getElementById('rep-role-text').textContent = 'First to answer the call gets assigned';
+    document.getElementById('rep-action-text').textContent = '';
+  } else {
+    repCard.style.display = 'none';
+  }
+
+  // Stages
+  const list = document.getElementById('stages-list');
+  list.innerHTML = '';
+  stagesData.forEach((stage, i) => {
+    const isComplete = stage.num < trackerStage;
+    const isActive   = stage.num === trackerStage;
+    const isFuture   = stage.num > trackerStage;
+    const stateClass = isActive ? 'active' : isComplete ? 'complete' : 'future';
+    const titleColor = isActive ? 'white' : isComplete ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.22)';
+    const msgColor   = isActive ? 'rgba(255,255,255,0.75)' : isComplete ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.18)';
+    const msgFn = stage.msg;
+    const msg = isFuture ? '—' : (typeof msgFn === 'function' ? msgFn(rep) : msgFn);
+
+    let repBadge = '';
+    if ((isActive || isComplete) && stage.num >= 2 && stage.num <= 4 && rep) {
+      repBadge = `<div class="rep-inline"><div class="rep-inline-dot" style="background:${rep.color};color:${rep.textColor};">${rep.initials}</div><span class="rep-inline-name">${rep.firstName}</span></div>`;
+    }
+
+    const row = document.createElement('div');
+    row.className = 'stage-row';
+    row.innerHTML = `
+      <div class="stage-left">
+        <div class="stage-icon-wrap">
+          <div class="stage-icon ${stateClass}">${iconSvg(stage.icon, stateClass)}</div>
+          ${isActive && trackerStage < 5 ? '<div class="stage-pulse"></div>' : ''}
+        </div>
+        ${i < stagesData.length - 1 ? `<div class="stage-connector ${isComplete ? 'done' : 'pending'}"></div>` : ''}
+      </div>
+      <div class="stage-content">
+        <div class="stage-title-row">
+          <div class="stage-title" style="color:${titleColor};">${stage.label}${stage.num === 5 && isActive ? ' 🎉' : ''}</div>
+          ${isActive && trackerStage < 5 ? `<div class="now-pill"><div class="now-dot"></div><span class="now-text">Now</span></div>` : ''}
+        </div>
+        <div class="stage-msg" style="color:${msgColor};">${msg}</div>
+        ${repBadge}
+        ${isComplete ? `<div class="stage-time-text">${stage.num + 1}m ago</div>` : ''}
+        ${isActive && stage.eta ? `<div class="stage-eta">${stage.eta}</div>` : ''}
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  // Bound card
+  document.getElementById('bound-card').className = trackerStage === 5 ? 'bound-card visible' : 'bound-card';
+  if (rep) {
+    document.getElementById('bound-sub').textContent = `Welcome packet emailed to Maria. ${rep.firstName} will follow up within 24–48 hours.`;
+  }
+
+  // Customer overlay
+  const si = trackerStage - 1;
+  document.getElementById('customer-greeting').textContent =
+    trackerStage >= 5 ? "Maria, you're covered! 🎉" :
+    trackerStage >= 4 ? "Maria, your quote is ready!" :
+    "Maria, we're on it!";
+
+  const custRepBlock = document.getElementById('customer-rep-block');
+  if (trackerStage >= 2 && rep) {
+    custRepBlock.style.display = 'flex';
+    const cav = document.getElementById('customer-rep-avatar');
+    cav.textContent = rep.initials;
+    cav.style.background = rep.color;
+    cav.style.color = rep.textColor;
+    document.getElementById('customer-rep-name-text').textContent = rep.fullName;
+    const statusFn = customerRepStatus[si];
+    document.getElementById('customer-rep-status-text').textContent =
+      typeof statusFn === 'function' ? statusFn(rep) : statusFn;
+  } else {
+    custRepBlock.style.display = 'none';
+  }
+
+  const csl = document.getElementById('customer-stages-list');
+  csl.innerHTML = '';
+  stagesData.forEach(stage => {
+    const isComplete = stage.num < trackerStage;
+    const isActive   = stage.num === trackerStage;
+    const cls = isActive ? 'cactive' : isComplete ? 'cdone' : 'cfuture';
+    const div = document.createElement('div');
+    div.className = 'customer-stage-row';
+    div.innerHTML = `
+      <div class="customer-stage-dot ${cls}"></div>
+      <div class="customer-stage-label ${cls}">${customerStageLabels[stage.num - 1]}</div>
+      ${isActive && trackerStage < 5 ? `<div class="now-pill" style="margin-left:auto;"><div class="now-dot"></div><span class="now-text">Now</span></div>` : ''}
+      ${isComplete ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(201,169,97,0.5)" stroke-width="2.5" style="margin-left:auto;"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>` : ''}
+    `;
+    csl.appendChild(div);
+  });
+}
+
+function goToTracker(startStage) {
+  goTo('tracker');
+  trackerStage = startStage;
+  // Simulate: rep gets assigned when stage advances to 2
+  assignedRep = startStage >= 2 ? simulatedRep : null;
+  renderTracker();
+  if (trackerInterval) clearInterval(trackerInterval);
+  if (trackerStage < 5) {
+    trackerInterval = setInterval(() => {
+      trackerStage++;
+      // Rep gets assigned the moment stage hits 2
+      if (trackerStage === 2) assignedRep = simulatedRep;
+      renderTracker();
+      if (trackerStage >= 5) clearInterval(trackerInterval);
+    }, 4000);
+  }
+}
+
+function toggleCustomerMode() {
+  const overlay = document.getElementById('customer-overlay');
+  const btn = document.getElementById('show-customer-btn');
+  overlay.classList.toggle('hidden');
+  btn.classList.toggle('active');
+  btn.textContent = overlay.classList.contains('hidden') ? 'Show Customer' : 'Internal View';
+}
+</script>
+</body>
+</html>
