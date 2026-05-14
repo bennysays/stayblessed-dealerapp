@@ -1,0 +1,16 @@
+# Stay Blessed Insurance Dealer Portal Prototype
+
+This package splits the original single-file HTML prototype into a cleaner structure.
+
+## Files
+
+- `index.html` - main HTML markup
+- `css/styles.css` - extracted styling
+- `js/app.js` - extracted JavaScript interactions
+- `assets/` - extracted embedded image assets
+
+## Notes
+
+- Extracted 1 embedded base64 image(s) into `assets/`.
+- Open `index.html` in a browser to preview the prototype.
+- Keep future images in `assets/` rather than embedding base64 directly in the HTML.
